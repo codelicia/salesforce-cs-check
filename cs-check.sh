@@ -18,6 +18,7 @@ for file in force-app/main/default/classes/*.cls; do
     declare -x ERROR_TEST_NAME=false
     declare -x ERROR_IS_TEST_ANNOTATION=false
     declare -x ERROR_TABS=false
+    declare -x ERROR_TRAILING_SPACE=false
 
     declare -x TEMP_ERRORS=""
 
@@ -35,6 +36,13 @@ for file in force-app/main/default/classes/*.cls; do
             ERROR_TEST_NAME=true
             TEMP_ERRORS="$TEMP_ERRORS  - You should name your tests classes as *Test.cls\n"
         fi
+    fi
+
+    # Check for trailing spaces
+    declare -x HAS_TRAILING_SPACES=$(sed -n '/ \+$/p' "$file" | wc -l)
+    if [[ "$HAS_TRAILING_SPACES" -gt "0" ]]; then
+            ERROR_TRAILING_SPACE=true
+            TEMP_ERRORS="$TEMP_ERRORS  - Remove triailing spaces from Apex code\n"
     fi
 
     # Check for "@IsTest" usage enforcing common notation
@@ -57,7 +65,7 @@ for file in force-app/main/default/classes/*.cls; do
     fi
 
     # Handle dotted output and store error information
-    if [[ ${ERROR_TABS} = true || ${ERROR_IS_TEST_ANNOTATION} = true || ${ERROR_TEST_NAME} = true || ${ERROR_METADATA} = true ]]; then
+    if [[ ${ERROR_TABS} = true || ${ERROR_IS_TEST_ANNOTATION} = true || ${ERROR_TEST_NAME} = true || ${ERROR_METADATA} = true || ${ERROR_TRAILING_SPACE} = true ]]; then
         echo -n 'F'
         let QUANTITY_OF_FAILUES++
         EXIT_CODE=1
